@@ -1,0 +1,10 @@
+file_id,title,domain,sub_domain,doc_type,language,permission_level,tags,summary,owner,status,source_course,hours,lessons,medical_boundary
+TCM-001,八纲辨证完整资料,TCM,八纲辨证,course_note,zh-CN,public,"八纲,表里,寒热,虚实,阴阳",八纲辨证理论基础与临床案例蒸馏笔记,知识库管理员,active,八纲辨证,2.7,33,仅供学习，禁止作为个人医疗建议
+TCM-002,黄帝内经完整资料,TCM,黄帝内经,course_note,zh-CN,public,"内经,阴阳五行,脏腑,脉色,天人合一",《黄帝内经》精讲：生命哲学与诊断心法,知识库管理员,active,黄帝内经,38.2,19,仅供学习，禁止作为个人医疗建议
+TCM-003,伤寒论完整资料,TCM,伤寒论,course_note,zh-CN,restricted,"伤寒论,六经辨证,方证,禁忌,经方",《伤寒论》六经辨证与核心方证表,知识库管理员,active,伤寒论,28.6,15,仅供学习；含峻剂高风险内容
+TCM-004,金匮要略完整资料,TCM,金匮要略,course_note,zh-CN,restricted,"金匮,杂病,水饮,妇科,阴实",《金匮要略》脉证并治与阴实重症理论,知识库管理员,active,金匮要略,38.3,21,仅供学习；含高风险案例
+TCM-005,临床案例完整资料,TCM,临床案例,case,zh-CN,restricted,"临床案例,肿瘤,心脏,肝病,肾衰",临床案例辨证路径（仅理论索引）,知识库管理员,active,临床案例,7.1,48,仅供学习；含方药线索
+TCM-006,神农本草完整资料,TCM,神农本草,course_note,zh-CN,restricted,"本草,药性,五味,炮制,峻药",《神农本草经》药性与配伍原则,知识库管理员,active,神农本草,29.6,16,仅供学习；含峻药高风险内容
+TCM-007,针灸完整资料,TCM,针灸,course_note,zh-CN,restricted,"针灸,十二经,奇经八脉,针法",针灸经络穴位与临床理论索引,知识库管理员,active,针灸,39.1,44,仅供学习；含操作索引禁止照做
+TCM-008,易筋经完整资料,TCM,易筋经,course_note,zh-CN,public,"易筋经,五脏逼毒,文式,武式",易筋经与五脏逼毒法术语索引,知识库管理员,active,易筋经,0.4,3,仅供学习，禁止作为个人训练处方
+TCM-009,仲景心法完整资料,TCM,仲景心法,course_note,zh-CN,restricted,"仲景心法,物理医学,经方心法,中虚为明",张仲景经方心法与物理医学观,知识库管理员,active,仲景心法,13.6,6,仅供学习，禁止作为个人医疗建议

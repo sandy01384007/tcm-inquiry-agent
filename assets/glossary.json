@@ -1,0 +1,443 @@
+{
+  "meta": {
+    "title": "倪海厦中医课程统一关键概念词汇表",
+    "version": "1.0",
+    "source": "八纲辨证 + 黄帝内经 + 伤寒论 + 金匮要略 + 神农本草 + 针灸 + 临床案例 + 仲景心法 + 易筋经",
+    "total_concepts": 48,
+    "medical_boundary": "本词汇表仅供学习与Agent检索使用，不构成任何医疗建议或诊断依据。"
+  },
+  "concepts": [
+    {
+      "id": "C001",
+      "term": "八纲辨证",
+      "pinyin": "bā gāng biàn zhèng",
+      "definition": "表、里、寒、热、虚、实、阴、阳八类核心维度，用于判断疾病性质与位置。",
+      "category": "辨证框架",
+      "source": ["八纲辨证", "伤寒论", "针灸"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C002",
+      "term": "六经辨证",
+      "pinyin": "liù jīng biàn zhèng",
+      "definition": "太阳、阳明、少阳、太阴、少阴、厥阴六经传变路径，是《伤寒论》核心辨证体系。",
+      "category": "辨证框架",
+      "source": ["伤寒论", "仲景心法"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C003",
+      "term": "表里辨证",
+      "pinyin": "biǎo lǐ biàn zhèng",
+      "definition": "表指体表（如感冒初起），里指内脏（如癌症）；需分阶段调治。",
+      "category": "辨证框架",
+      "source": ["八纲辨证"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C004",
+      "term": "寒热辨证",
+      "pinyin": "hán rè biàn zhèng",
+      "definition": "通过温度偏好、症状（烦躁/畏寒）判断阳气与阴寒失衡。",
+      "category": "辨证框架",
+      "source": ["八纲辨证", "伤寒论"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C005",
+      "term": "虚实辨证",
+      "pinyin": "xū shí biàn zhèng",
+      "definition": "虚指脏腑功能不足，实指邪气积聚（如肿瘤实体）。课程强调“虚不死人，实才死人”。",
+      "category": "辨证框架",
+      "source": ["八纲辨证", "金匮要略"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C006",
+      "term": "阴阳辨证",
+      "pinyin": "yīn yáng biàn zhèng",
+      "definition": "阴为形体（如硬块），阳为功能（如心脏驱动热量）。辨证第一要务。",
+      "category": "辨证框架",
+      "source": ["八纲辨证", "黄帝内经", "仲景心法"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C007",
+      "term": "胃气",
+      "pinyin": "wèi qì",
+      "definition": "后天之本。脉象“缓而有力”，面色微黄。有胃气则生，无胃气则死。",
+      "category": "核心病机",
+      "source": ["黄帝内经", "金匮要略", "针灸"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C008",
+      "term": "阴实",
+      "pinyin": "yīn shí",
+      "definition": "体内实质性阴寒邪气结块（如肿瘤），导致阳气无法入阴。是重症本质之一。",
+      "category": "核心病机",
+      "source": ["金匮要略", "临床案例", "针灸"],
+      "risk_level": "high"
+    },
+    {
+      "id": "C009",
+      "term": "气化",
+      "pinyin": "qì huà",
+      "definition": "体内液态水受脏腑之火加热转化为气态津液的过程。水液代谢核心。",
+      "category": "核心病机",
+      "source": ["黄帝内经", "针灸", "金匮要略"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C010",
+      "term": "物理医学",
+      "pinyin": "wù lǐ yī xué",
+      "definition": "中医本质属性：通过调节温度、压力、速度、时间来祛病，而非纯化学指标。",
+      "category": "核心观念",
+      "source": ["仲景心法", "针灸"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C011",
+      "term": "同症同治",
+      "pinyin": "tóng zhèng tóng zhì",
+      "definition": "只要寒热虚实等症状相同，即采用相同治法，无需理会现代病名。",
+      "category": "核心观念",
+      "source": ["黄帝内经", "仲景心法"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C012",
+      "term": "以通为补",
+      "pinyin": "yǐ tōng wéi bǔ",
+      "definition": "当体内有瘀血、死肉、宿便时，清理即是补。通了它就是补的。",
+      "category": "核心观念",
+      "source": ["神农本草", "金匮要略"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C013",
+      "term": "治未病",
+      "pinyin": "zhì wèi bìng",
+      "definition": "上工治未病：提前强健疾病即将传变的下一个脏腑以阻断病势。",
+      "category": "核心观念",
+      "source": ["金匮要略", "黄帝内经"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C014",
+      "term": "中虚为明",
+      "pinyin": "zhōng xū wéi míng",
+      "definition": "医者问诊放空自我，摒弃病名标签，纯粹依症状辨证的境界。",
+      "category": "医者心法",
+      "source": ["仲景心法"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C015",
+      "term": "子午流注",
+      "pinyin": "zǐ wǔ liú zhù",
+      "definition": "十二经脉气血在十二时辰中的周期性盛衰规律，用于诊断与择时。",
+      "category": "时间医学",
+      "source": ["黄帝内经", "针灸", "八纲辨证"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C016",
+      "term": "五输穴",
+      "pinyin": "wǔ shū xué",
+      "definition": "肘膝关节以下的井、荥、输、经、合穴，对应五行。",
+      "category": "针灸",
+      "source": ["针灸"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C017",
+      "term": "同身寸",
+      "pinyin": "tóng shēn cùn",
+      "definition": "针灸取穴标准：以患者中指弯曲后两横纹间距为一寸。",
+      "category": "针灸",
+      "source": ["针灸"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C018",
+      "term": "迎随补泻",
+      "pinyin": "yíng suí bǔ xiè",
+      "definition": "顺经络气血走向下针为补，逆为泻。",
+      "category": "针灸",
+      "source": ["针灸"],
+      "risk_level": "high"
+    },
+    {
+      "id": "C019",
+      "term": "烧山火 / 透天凉",
+      "pinyin": "shāo shān huǒ / tòu tiān liáng",
+      "definition": "高阶复合补泻手法。仅作术语索引，不提供操作。",
+      "category": "针灸",
+      "source": ["针灸"],
+      "risk_level": "high"
+    },
+    {
+      "id": "C020",
+      "term": "俞募治疗",
+      "pinyin": "shù mù zhì liáo",
+      "definition": "内科脏腑病经典治法：胸腹募穴（阴）配背部俞穴（阳）。",
+      "category": "针灸",
+      "source": ["针灸"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C021",
+      "term": "五味",
+      "pinyin": "wǔ wèi",
+      "definition": "酸苦甘辛咸。酸收敛、苦泻坚燥、甘缓补、辛发散、咸软坚。",
+      "category": "药性",
+      "source": ["神农本草", "黄帝内经"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C022",
+      "term": "经方",
+      "pinyin": "jīng fāng",
+      "definition": "以张仲景《伤寒杂病论》为代表的经典方剂体系，用药精简、法度严谨。",
+      "category": "方药",
+      "source": ["伤寒论", "金匮要略", "仲景心法", "神农本草"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C023",
+      "term": "桂枝汤法度",
+      "pinyin": "guì zhī tāng fǎ dù",
+      "definition": "桂枝（辛甘发散主阳管动脉）与白芍（酸苦收敛主阴管静脉）等量配伍，调和阴阳。",
+      "category": "方药",
+      "source": ["伤寒论", "仲景心法"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C024",
+      "term": "四逆汤辈",
+      "pinyin": "sì nì tāng bèi",
+      "definition": "回阳救逆类方，用于里寒极盛。高风险，涉及附子，严禁自行使用。",
+      "category": "方药",
+      "source": ["伤寒论", "金匮要略", "临床案例"],
+      "risk_level": "critical"
+    },
+    {
+      "id": "C025",
+      "term": "大承气汤",
+      "pinyin": "dà chéng qì tāng",
+      "definition": "阳明腑实重证急下存阴之方。高风险峻剂，中病即止。",
+      "category": "方药",
+      "source": ["伤寒论", "金匮要略"],
+      "risk_level": "critical"
+    },
+    {
+      "id": "C026",
+      "term": "热结旁流",
+      "pinyin": "rè jié páng liú",
+      "definition": "肠道被坚硬宿便堵塞，水从缝隙流出的假象下利。需急下，不得自行处理。",
+      "category": "病机",
+      "source": ["伤寒论", "神农本草", "仲景心法"],
+      "risk_level": "high"
+    },
+    {
+      "id": "C027",
+      "term": "汗血同源",
+      "pinyin": "hàn xuè tóng yuán",
+      "definition": "津液（汗）与血液同源，误用发汗可致津液枯竭。",
+      "category": "病机",
+      "source": ["神农本草", "伤寒论"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C028",
+      "term": "治风先治血",
+      "pinyin": "zhì fēng xiān zhì xuè",
+      "definition": "治疗风邪（中风、肝风）必须先疏通血脉，“血行风自灭”。",
+      "category": "治则",
+      "source": ["神农本草"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C029",
+      "term": "咸能软坚",
+      "pinyin": "xián néng ruǎn jiān",
+      "definition": "咸味入肾，可软坚散结。课程用于海藻、牡蛎、鳖甲等语境。",
+      "category": "药性",
+      "source": ["神农本草"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C030",
+      "term": "大寒大热",
+      "pinyin": "dà hán dà rè",
+      "definition": "极性用药思维：治重症敢用石膏、生附子、硫磺等，把握物极必反。",
+      "category": "药性",
+      "source": ["神农本草", "金匮要略"],
+      "risk_level": "critical"
+    },
+    {
+      "id": "C031",
+      "term": "五脏逼毒法",
+      "pinyin": "wǔ zàng bī dú fǎ",
+      "definition": "通过特定呼吸与发音（嘘呵呼呬吹），以内劲冲击五脏排毒。仅作术语索引。",
+      "category": "功法",
+      "source": ["易筋经", "金匮要略"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C032",
+      "term": "文式易筋经",
+      "pinyin": "wén shì yì jīn jīng",
+      "definition": "侧重静态肌肉控制与力量传导的十二式功法。",
+      "category": "功法",
+      "source": ["易筋经"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C033",
+      "term": "武式易筋经",
+      "pinyin": "wǔ shì yì jīn jīng",
+      "definition": "动态拉伸与气脉疏通结合的功法，注重呼吸与意念。",
+      "category": "功法",
+      "source": ["易筋经"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C034",
+      "term": "奶水同源",
+      "pinyin": "nǎi shuǐ tóng yuán",
+      "definition": "课程观点：女性月经与奶水同源，由心脏热力转化。仅作理论索引。",
+      "category": "病机",
+      "source": ["八纲辨证", "临床案例", "仲景心法"],
+      "risk_level": "high"
+    },
+    {
+      "id": "C035",
+      "term": "治肝必治大肠",
+      "pinyin": "zhì gān bì zhì dà cháng",
+      "definition": "通过保持排便通畅卸除肝脏压力，是治肝的重要原则。",
+      "category": "治则",
+      "source": ["金匮要略"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C036",
+      "term": "治水必先治火",
+      "pinyin": "zhì shuǐ bì xiān zhì huǒ",
+      "definition": "课程讨论水肿、尿毒症时的治则概括：心火不足则水液气化失常。",
+      "category": "治则",
+      "source": ["仲景心法", "金匮要略"],
+      "risk_level": "high"
+    },
+    {
+      "id": "C037",
+      "term": "宁可虚不可实",
+      "pinyin": "nìng kě xū bù kě shí",
+      "definition": "防病理念：避免盲目补充无法消化的营养，防止体内积累实证。",
+      "category": "养生",
+      "source": ["仲景心法"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C038",
+      "term": "形与神俱",
+      "pinyin": "xíng yǔ shén jù",
+      "definition": "健康最高境界：形体与心神都要保养，恬淡虚无。",
+      "category": "养生",
+      "source": ["黄帝内经"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C039",
+      "term": "阴平阳秘",
+      "pinyin": "yīn píng yáng mì",
+      "definition": "阴气平顺，阳气固密。精神健旺的正常生理状态。",
+      "category": "养生",
+      "source": ["黄帝内经"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C040",
+      "term": "司外揣内",
+      "pinyin": "sī wài chuǎi nèi",
+      "definition": "中医诊断精髓：站在外面看到里面藏什么。",
+      "category": "诊断",
+      "source": ["仲景心法"],
+      "risk_level": "low"
+    },
+    {
+      "id": "C041",
+      "term": "色脉合参",
+      "pinyin": "sè mài hé cān",
+      "definition": "诊断时必须将面部气色与把脉结果相结合。",
+      "category": "诊断",
+      "source": ["黄帝内经"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C042",
+      "term": "阿是穴",
+      "pinyin": "ā shì xué",
+      "definition": "循经压痛点。压痛不是确诊标靶，针刺须专业评估。",
+      "category": "针灸",
+      "source": ["针灸"],
+      "risk_level": "high"
+    },
+    {
+      "id": "C043",
+      "term": "导引",
+      "pinyin": "dǎo yǐn",
+      "definition": "通过针灸手法或特定动作牵引调动体内气血直达病灶。",
+      "category": "针灸/功法",
+      "source": ["针灸", "易筋经"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C044",
+      "term": "除中",
+      "pinyin": "chú zhōng",
+      "definition": "厥阴病死候：本不能食突然暴食，为胃气将绝的回光返照。",
+      "category": "危候",
+      "source": ["伤寒论"],
+      "risk_level": "critical"
+    },
+    {
+      "id": "C045",
+      "term": "戴阳",
+      "pinyin": "dài yáng",
+      "definition": "阴寒极盛于下，逼虚阳上浮。需急用破阴回阳法。",
+      "category": "危候",
+      "source": ["伤寒论"],
+      "risk_level": "critical"
+    },
+    {
+      "id": "C046",
+      "term": "奔豚气",
+      "pinyin": "bēn tún qì",
+      "definition": "寒水从下焦向上冲逆，患者感觉如小猪在腹部乱窜。",
+      "category": "病证",
+      "source": ["金匮要略"],
+      "risk_level": "high"
+    },
+    {
+      "id": "C047",
+      "term": "脾约",
+      "pinyin": "pí yuē",
+      "definition": "胃火过大榨干脾津，大便干结如羊屎。",
+      "category": "病证",
+      "source": ["伤寒论", "金匮要略"],
+      "risk_level": "medium"
+    },
+    {
+      "id": "C048",
+      "term": "虚则补其母，实则泻其子",
+      "pinyin": "xū zé bǔ qí mǔ, shí zé xiè qí zǐ",
+      "definition": "基于五行生克的治则。",
+      "category": "治则",
+      "source": ["黄帝内经", "神农本草"],
+      "risk_level": "low"
+    }
+  ]
+}
