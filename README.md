@@ -1,87 +1,50 @@
-# 经方问询助手 Skill（tcm-inquiry-agent）
+# 经方问询助手 / 经方诊室
 
-中医小诊所 **理论检索 + 问诊辅助** Agent Skill。兼容 Grok / [agentskills.io](https://agentskills.io) 格式。
+中医小诊所 **理论 Skill + 诊所问诊 App**。
 
-**定位**：帮助医师快速回顾八纲、六经、药性与课程观点，并结构化采集问诊信息。  
-**不是**：自动开方、诊断或操作指导系统。
+**不是自动医生。** 方证、煎煮、西药对症、舌象与检验解读，均供具备资质的执业中医师作草稿，须面诊复核。
 
-## 它能做什么
-
-- 八纲 / 六经 / 脏腑 / 药性理论检索（带来源）
-- 医师与助手权限分离
-- 急症与峻药 Guardrails
-- RAG 切分、元数据、审计日志
-- Dify / FastGPT 诊所落地步骤
-- 培训大纲与测试用例
-
-## 它绝对不能做
-
-- 确诊、开方、剂量、煎服法
-- 针灸 / 艾灸 / 放血 / 透针操作步骤
-- 功法训练处方
-- 替代执业中医师决策
-
-每条回答必须附带免责声明。
-
-## 快速开始
-
-将本仓库放入 Skills 目录：
-
-```bash
-mkdir -p ~/.grok/skills/tcm-inquiry-agent
-cp -r ./* ~/.grok/skills/tcm-inquiry-agent/
-```
-
-### 触发词示例
-
-- 中医 Agent / 经方问询 / 诊所问诊助手
-- 八纲辨证、六经、伤寒论、金匮、内经
-- 倪海厦课程知识库、Dify 中医助手
-- TCM inquiry, syndrome differentiation
-
-## 目录结构
+## 仓库结构
 
 ```
 tcm-inquiry-agent/
-├── SKILL.md                          # Skill 主指令
+├── SKILL.md                 # Grok Skill 主指令
 ├── README.md
-├── LICENSE
-├── assets/
-│   └── glossary.json                 # 48 个核心概念
-├── scripts/
-│   ├── rag_chunking.py               # RAG 切分 + 权限过滤
-│   ├── risk_filter.py                # 高风险 / 急症拦截
-│   ├── generate_metadata_csv.py      # 知识库元数据
-│   └── README.md
-└── references/
-    ├── system-prompt.md
-    ├── role-prompts.md
-    ├── safety-guardrails.md
-    ├── clinic-workflow.md
-    ├── install-guide.md
-    ├── dify-fastgpt.md
-    ├── ui-prototype.md
-    ├── audit-log.md
-    ├── training.md
-    ├── test-cases.md
-    └── metadata-schema.md
+├── assets/glossary.json
+├── scripts/                 # RAG 切分、风险过滤
+├── references/              # Prompt、安装、测试、视觉模型说明
+└── clinic/                  # 诊所 App 源码（TanStack Start）
+    ├── src/lib/tcm/         # 经方、煎煮、匹配、舌象/检验 AI
+    ├── src/routes/          # 看诊、方库、检验、记录
+    └── src/components/      # 舌象拍照、诊室壳
 ```
 
-## 知识库说明
+## 诊所 App 已完善
 
-本 Skill **不包含** 受版权保护的完整课程讲稿或视频。诊所应使用自有、已获授权的蒸馏笔记作为 RAG 语料。Skill 提供概念词表、Prompt、切分脚本与安全规则。
+- 患者：姓名、年龄、性别、就诊日期、编号
+- 辨证出方：八纲/六经标签匹配，经方候选 + 详细煎煮步骤
+- 西药对症：仅医师核定后可见的 OTC 类草稿
+- 舌象：拍照 / 上传 + **视觉大模型**质控（须医师目视复核）
+- 检验影像：体检报告、化验单、CT（最多 3 张）+ AI 摘录（非正式报告）
+- 医师 / 助手权限：助手不能核定处方
+- 急症拦截；附子、承气等峻剂不给出家庭克数
 
-## 脚本
+## 视觉模型怎么接
+
+舌象与 CT **不是**导入 `.gguf` 文件，而是调用**带视觉的大模型（VLM）**。
+
+诊所 App 默认：`grok-4.5`，服务端 `POST https://api.x.ai/v1/chat/completions`，消息含 `image_url`（压缩后的 JPEG data URL）。密钥只用环境变量 `XAI_API_KEY`，禁止写进前端。
+
+详见 `references/vision-models.md`。
+
+## Skill 安装
 
 ```bash
-python3 scripts/risk_filter.py "什么是八纲辨证"
-python3 scripts/rag_chunking.py --help
-python3 scripts/generate_metadata_csv.py
+mkdir -p ~/.grok/skills/tcm-inquiry-agent
+cp -r SKILL.md assets scripts references ~/.grok/skills/tcm-inquiry-agent/
 ```
 
-## 上线前必测
-
-先跑 `references/test-cases.md` 的 **R 系列**（高风险拦截），再测理论问答。
+本仓库**不含**受版权保护的完整课程讲稿。诊所应使用自有、已获授权的蒸馏笔记作 RAG。
 
 ## License
 

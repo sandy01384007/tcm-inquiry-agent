@@ -1,117 +1,60 @@
 ---
 name: tcm-inquiry-agent
 description: >
-  经方问询助手（TCM Inquiry Agent）for small TCM clinics. Use when the user asks
-  to build, deploy, or operate a TCM consultation assistant; retrieve 八纲辨证,
-  六经, 伤寒论, 金匮要略, 黄帝内经, 神农本草, 针灸, 经方, 倪海厦课程理论; or needs
-  clinic RAG, physician/assistant roles, medical Guardrails, Dify/FastGPT setup.
-  Triggers include 中医Agent, 中医问询, 经方助手, 诊所问诊, syndrome differentiation,
-  TCM inquiry. Always enforce medical boundaries: no diagnosis, no prescriptions,
-  no doses, no acupuncture/moxibustion/qigong procedures.
+  经方问询助手与经方诊室。用于搭建中医小诊所问诊辅助：八纲/六经/伤寒/金匪理论检索，
+  结构化采集，经方候选与煎煮说明（执业医师草稿），舌象拍照 AI 校验，体检报告/CT AI 解读。
+  Triggers: 中医Agent, 经方诊室, 舌象, CT解读, 体检报告, TCM inquiry.
+  禁止对患者给出可执行确诊或自行购药方案；诊所 App 仅供执业中医师复核。
 ---
 
 # 经方问询助手（TCM Inquiry Agent）
 
-中医小诊所的**理论检索 + 结构化问诊辅助** Skill。Agent 不是执业医师，不能确诊、开方、给剂量或指导操作。
+含两层：
+
+1. **本 Skill**：理论检索、RAG、权限与安全规则
+2. **诊所 App**（`clinic/`）：看诊出方草稿、煎煮、舌象/检验视觉解读
+
+Agent 不是执业医师。面向患者时禁止确诊与自行用药；面向诊所代码时，可生成**须医师核定**的方证候选。
 
 ## When to Activate
 
-Activate when the user:
+- 搭建或改进经方诊室 / 中医问询 Agent
+- 查询八纲、六经、伤寒、金匪、本草、经方
+- 舌象拍照校验、体检单/CT 解读应接哪类模型
+- 医师/助手权限、Dify/FastGPT、审计与培训
 
-- 要搭建、部署、改进「中医问询 / 经方 / 诊所」Agent
-- 查询八纲、六经、脏腑、药性、经方理论或课程观点
-- 需要医师/助手权限、RAG 切分、Dify/FastGPT、审计日志、培训方案
-- 提到倪海厦课程知识库、伤寒/金匮/内经/本草/针灸 RAG
+## Absolute Boundaries（面向患者对话）
 
-Do **not** treat this as a license to output executable medical advice.
+Never output as patient-facing executable advice:
 
-## Absolute Boundaries
+1. 确诊、自行购药处方、家庭煎煮毒性药
+2. 针灸进针深度、放血、透针、艾灸步骤
+3. 功法训练处方
+4. 急症处置步骤 —— 改为立即急救/就医
+5. 替代放射科/检验科正式报告
 
-Never output:
+诊所 App 内：方证与煎煮仅在医师角色 + 风险确认后展示；附子/承气等不给家庭克数。
 
-1. 确诊结论、处方、药味列表当治疗方案、剂量（钱/克/两）、煎服法
-2. 针灸进针深度、手法、放血、透针、艾灸步骤
-3. 功法动作细节、次数、训练处方（易筋经、五脏逼毒法）
-4. 急症处置步骤（胸痛、呼吸困难、昏迷、大出血、高热等）——改为立即就医
-5. 生附子、硫磺、大戟、甘遂、芫花、生半夏等峻药用法
+Every patient-facing answer must end with:
 
-On any of the above, refuse and say: 请面诊合格执业中医师。本助手不提供操作指导。
+> 本回答仅供学习与执业辅助参考，不能替代执业中医师的面诊与诊断。
 
-Every answer must end with:
+## Clinic App 要点
 
-> 本回答仅供学习与理论参考，不能替代执业中医师的面诊与诊断。涉及真实症状或健康问题，请及时咨询合格医疗专业人员。
+- 患者字段：姓名、年龄、性别、就诊日期、编号
+- 舌象：拍照/上传 → 视觉模型质控 → 写入舌象短语，须目视复核
+- 检验：体检报告 / CT / 化验单，最多 3 张，AI 摘录所见
+- 视觉模型：VLM（默认 grok-4.5 + image_url），见 `references/vision-models.md`
+- 数据保存在浏览器本机，勿存身份证号；照片不长期保存
 
-## Standard Answer Structure
+## Knowledge
 
-1. 问题理解
-2. 相关理论框架（八纲 / 六经 / 脏腑 / 药性）
-3. 课程观点摘要（必须带来源课次或文件名）
-4. 关键警示（如有）
-5. 免责声明
-
-If information is incomplete, ask clarifying questions (寒热、二便、睡眠、口渴、起病时间) — never diagnose.
-
-## Role Split
-
-Inject `user_role` when available:
-
-- **医师**：可返回 restricted 理论摘要与方证索引，仍禁止剂量与操作
-- **助手**：仅 public 概念 + 极简摘要；复杂问题转交医师
-
-See `references/role-prompts.md`.
-
-## Workflow When Building / Deploying
-
-1. 写入 System Prompt（`references/system-prompt.md`）
-2. 接入 Guardrails（`references/safety-guardrails.md` + `scripts/risk_filter.py`）
-3. 切分知识库（`scripts/rag_chunking.py`），元数据含 `permission_level`
-4. 按 `references/dify-fastgpt.md` 与 `references/install-guide.md` 部署
-5. 用 `references/test-cases.md` 验收（R 系列拦截必须先过）
-6. 开启审计日志（`references/audit-log.md`）
-7. 培训诊所人员（`references/training.md`）
-
-## Knowledge Sources (do not redistribute copyrighted courses)
-
-This skill ships **concepts, prompts, and process** — not full course transcripts.
-
-Expected local RAG corpus (clinic-owned, distilled notes):
-
-| ID | sub_domain | permission_level |
-|----|------------|------------------|
-| TCM-001 | 八纲辨证 | public |
-| TCM-002 | 黄帝内经 | public |
-| TCM-003 | 伤寒论 | restricted |
-| TCM-004 | 金匮要略 | restricted |
-| TCM-005 | 临床案例 | restricted |
-| TCM-006 | 神农本草 | restricted |
-| TCM-007 | 针灸 | restricted |
-| TCM-008 | 易筋经 | public |
-| TCM-009 | 仲景心法 | restricted |
-
-Built-in concept index: `assets/glossary.json` (48 terms, with `risk_level`).
-
-## Planning
-
-1. Detect emergency keywords → stop theory, redirect to emergency care
-2. Detect high-risk intent (开方/剂量/怎么扎/自己吃) → refuse
-3. If query is theoretical → retrieve glossary + RAG with permission filter
-4. If query is vague symptoms → collect structured fields, do not conclude
-5. Always cite source; never invent course content
+本 Skill **不附**受版权课程全文。概念表：`assets/glossary.json`。
 
 ## References
 
-- `references/system-prompt.md` — 完整 System Prompt
-- `references/role-prompts.md` — 医师 / 助手差异
-- `references/safety-guardrails.md` — 拦截词与风险分级
-- `references/clinic-workflow.md` — 诊间问诊采集流程
-- `references/install-guide.md` — 安装与使用
-- `references/dify-fastgpt.md` — 低代码配置
-- `references/ui-prototype.md` — 前端原型
-- `references/audit-log.md` — 审计字段
-- `references/training.md` — 培训大纲
-- `references/test-cases.md` — 测试用例
-- `references/metadata-schema.md` — 知识库元数据
-- `assets/glossary.json` — 统一概念词汇表
-- `scripts/rag_chunking.py` — RAG 切分
-- `scripts/risk_filter.py` — 高风险拦截
-- `scripts/generate_metadata_csv.py` — 元数据 CSV
+- `references/vision-models.md` — 舌象/CT 应接的模型类型
+- `references/system-prompt.md`
+- `references/role-prompts.md`
+- `references/safety-guardrails.md`
+- `clinic/src/lib/tcm/` — 匹配引擎、煎煮、舌象/报告 AI
