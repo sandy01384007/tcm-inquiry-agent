@@ -3,11 +3,16 @@ import { persist } from "zustand/middleware";
 import {
   EMPTY_INTAKE,
   EMPTY_PATIENT,
+  EMPTY_PAY_CODES,
   todayDate,
+  type Bill,
+  type BillDraft,
+  type ChatTurn,
   type ConsultRecord,
   type ImagingReport,
   type Intake,
   type Patient,
+  type PayCodes,
 } from "./types";
 
 type State = {
@@ -17,6 +22,11 @@ type State = {
   patient: Patient;
   records: ConsultRecord[];
   reports: ImagingReport[];
+  bills: Bill[];
+  payCodes: PayCodes;
+  billDraft: BillDraft | null;
+  chats: ChatTurn[];
+  chatOpen: boolean;
   accept: () => void;
   setRole: (role: "医师" | "助手") => void;
   setIntake: (patch: Partial<Intake>) => void;
@@ -26,6 +36,13 @@ type State = {
   confirmRecord: (id: string) => void;
   loadRecord: (id: string) => void;
   saveReport: (rec: ImagingReport) => void;
+  saveBill: (bill: Bill) => void;
+  updateBill: (id: string, patch: Partial<Bill>) => void;
+  setPayCodes: (patch: Partial<PayCodes>) => void;
+  setBillDraft: (draft: BillDraft | null) => void;
+  addChat: (turn: ChatTurn) => void;
+  clearChat: () => void;
+  setChatOpen: (open: boolean) => void;
 };
 
 function freshPatient(): Patient {
@@ -41,6 +58,11 @@ export const useClinic = create<State>()(
       patient: freshPatient(),
       records: [],
       reports: [],
+      bills: [],
+      payCodes: EMPTY_PAY_CODES,
+      billDraft: null,
+      chats: [],
+      chatOpen: false,
       accept: () => set({ accepted: true }),
       setRole: (role) => set({ role }),
       setIntake: (patch) => set((s) => ({ intake: { ...s.intake, ...patch } })),
@@ -61,6 +83,16 @@ export const useClinic = create<State>()(
           };
         }),
       saveReport: (rec) => set((s) => ({ reports: [rec, ...s.reports].slice(0, 30) })),
+      saveBill: (bill) => set((s) => ({ bills: [bill, ...s.bills].slice(0, 80) })),
+      updateBill: (id, patch) =>
+        set((s) => ({
+          bills: s.bills.map((b) => (b.id === id ? { ...b, ...patch } : b)),
+        })),
+      setPayCodes: (patch) => set((s) => ({ payCodes: { ...s.payCodes, ...patch } })),
+      setBillDraft: (billDraft) => set({ billDraft }),
+      addChat: (turn) => set((s) => ({ chats: [...s.chats, turn].slice(-40) })),
+      clearChat: () => set({ chats: [] }),
+      setChatOpen: (chatOpen) => set({ chatOpen }),
     }),
     {
       name: "jingfang-clinic",
@@ -84,6 +116,9 @@ export const useClinic = create<State>()(
           },
           records,
           reports: p.reports ?? current.reports,
+          bills: p.bills ?? current.bills,
+          payCodes: p.payCodes ?? current.payCodes,
+          chats: p.chats ?? current.chats,
         };
       },
     },
