@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, ClipboardList, ScanLine, Stethoscope } from "lucide-react";
+import { BookOpen, ClipboardList, ScanLine, Stethoscope, Wallet } from "lucide-react";
+import { ClinicChat } from "@/components/clinic-chat";
 import { useClinic } from "@/lib/tcm/store";
 import { cn } from "@/lib/utils";
 
@@ -26,24 +27,19 @@ export function ClinicShell({ children }: { children: ReactNode }) {
               <Stethoscope className="size-4" />
               看诊
             </Link>
-            <Link
-              to="/library"
-              className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-2 hover:bg-secondary"
-            >
+            <Link to="/library" className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-2 hover:bg-secondary">
               <BookOpen className="size-4" />
               方库
             </Link>
-            <Link
-              to="/reports"
-              className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-2 hover:bg-secondary"
-            >
+            <Link to="/reports" className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-2 hover:bg-secondary">
               <ScanLine className="size-4" />
               检验
             </Link>
-            <Link
-              to="/history"
-              className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-2 hover:bg-secondary"
-            >
+            <Link to="/billing" className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-2 hover:bg-secondary">
+              <Wallet className="size-4" />
+              收费
+            </Link>
+            <Link to="/history" className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-2 hover:bg-secondary">
               <ClipboardList className="size-4" />
               记录
             </Link>
@@ -66,6 +62,7 @@ export function ClinicShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+      <ClinicChat />
     </div>
   );
 }

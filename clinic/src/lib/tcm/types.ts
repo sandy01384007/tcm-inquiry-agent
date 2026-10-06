@@ -151,3 +151,46 @@ export type ImagingReport = {
   tcmHint: string;
   note: string;
 };
+
+export type PayMethod = "微信" | "支付宝" | "现金";
+
+export const PAY_METHODS: PayMethod[] = ["微信", "支付宝", "现金"];
+
+export type PayStatus = "待收" | "已收" | "作废";
+
+export type BillItem = {
+  name: string;
+  amountFen: number;
+};
+
+export type Bill = {
+  id: string;
+  createdAt: string;
+  paidAt?: string;
+  patientLabel: string;
+  consultId?: string;
+  formulaName?: string;
+  items: BillItem[];
+  method: PayMethod;
+  status: PayStatus;
+  note: string;
+};
+
+export type PayCodes = {
+  wechat: string;
+  alipay: string;
+};
+
+export const EMPTY_PAY_CODES: PayCodes = { wechat: "", alipay: "" };
+
+export type BillDraft = {
+  consultId?: string;
+  formulaName?: string;
+  items: BillItem[];
+};
+
+export type ChatTurn = {
+  role: "user" | "assistant";
+  text: string;
+  at: string;
+};
