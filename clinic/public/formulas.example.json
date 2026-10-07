@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "formulas": [
+    {
+      "id": "local-example",
+      "name": "示例方",
+      "source": "本店增补",
+      "channel": "杂病",
+      "pattern": "请改成真实证候",
+      "indication": "仅作 JSON 格式示例，导入前请删除。",
+      "herbs": [{ "name": "甘草", "classic": "二两" }],
+      "usage": "由执业医师核定。",
+      "caution": "示例方不可用于真实处方。",
+      "risk": "low",
+      "hideModernDose": true,
+      "tags": ["示例"]
+    }
+  ]
+}
