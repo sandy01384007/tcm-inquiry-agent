@@ -4,13 +4,16 @@ import {
   EMPTY_INTAKE,
   EMPTY_PATIENT,
   EMPTY_PAY_CODES,
+  EMPTY_LOCAL_AI,
   todayDate,
   type Bill,
   type BillDraft,
   type ChatTurn,
   type ConsultRecord,
+  type Formula,
   type ImagingReport,
   type Intake,
+  type LocalAi,
   type Patient,
   type PayCodes,
 } from "./types";
@@ -27,6 +30,8 @@ type State = {
   billDraft: BillDraft | null;
   chats: ChatTurn[];
   chatOpen: boolean;
+  extraFormulas: Formula[];
+  localAi: LocalAi;
   accept: () => void;
   setRole: (role: "医师" | "助手") => void;
   setIntake: (patch: Partial<Intake>) => void;
@@ -43,6 +48,8 @@ type State = {
   addChat: (turn: ChatTurn) => void;
   clearChat: () => void;
   setChatOpen: (open: boolean) => void;
+  setExtraFormulas: (list: Formula[]) => void;
+  setLocalAi: (patch: Partial<LocalAi>) => void;
 };
 
 function freshPatient(): Patient {
@@ -63,6 +70,8 @@ export const useClinic = create<State>()(
       billDraft: null,
       chats: [],
       chatOpen: false,
+      extraFormulas: [],
+      localAi: EMPTY_LOCAL_AI,
       accept: () => set({ accepted: true }),
       setRole: (role) => set({ role }),
       setIntake: (patch) => set((s) => ({ intake: { ...s.intake, ...patch } })),
@@ -90,9 +99,17 @@ export const useClinic = create<State>()(
         })),
       setPayCodes: (patch) => set((s) => ({ payCodes: { ...s.payCodes, ...patch } })),
       setBillDraft: (billDraft) => set({ billDraft }),
-      addChat: (turn) => set((s) => ({ chats: [...s.chats, turn].slice(-40) })),
+      addChat: (turn) =>
+        set((s) => {
+          const next = [...s.chats, turn].slice(-40).map((m, i, arr) =>
+            i < arr.length - 6 ? { ...m, image: undefined } : m,
+          );
+          return { chats: next };
+        }),
       clearChat: () => set({ chats: [] }),
       setChatOpen: (chatOpen) => set({ chatOpen }),
+      setExtraFormulas: (extraFormulas) => set({ extraFormulas: extraFormulas.slice(0, 200) }),
+      setLocalAi: (patch) => set((s) => ({ localAi: { ...s.localAi, ...patch } })),
     }),
     {
       name: "jingfang-clinic",
@@ -119,6 +136,8 @@ export const useClinic = create<State>()(
           bills: p.bills ?? current.bills,
           payCodes: p.payCodes ?? current.payCodes,
           chats: p.chats ?? current.chats,
+          extraFormulas: p.extraFormulas ?? current.extraFormulas,
+          localAi: p.localAi ?? current.localAi,
         };
       },
     },
