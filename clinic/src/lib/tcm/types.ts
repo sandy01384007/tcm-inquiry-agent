@@ -193,4 +193,21 @@ export type ChatTurn = {
   role: "user" | "assistant";
   text: string;
   at: string;
+  image?: string;
 };
+
+export type LocalAi = {
+  enabled: boolean;
+  baseUrl: string;
+  model: string;
+};
+
+export const EMPTY_LOCAL_AI: LocalAi = {
+  enabled: false,
+  baseUrl: "http://127.0.0.1:11434/v1",
+  model: "qwen2.5",
+};
+
+export const CHANNELS: Channel[] = ["太阳", "阳明", "少阳", "太阴", "少阴", "厥阴", "杂病"];
+
+export const RISKS: Risk[] = ["low", "medium", "high", "critical"];

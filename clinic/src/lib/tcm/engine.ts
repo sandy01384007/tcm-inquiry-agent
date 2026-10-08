@@ -92,7 +92,7 @@ export function localExplain(intake: Intake, names: string[], principles: string
     intake.coldHeat ? `寒热：${intake.coldHeat}。` : "",
     intake.sweat ? `汗：${intake.sweat}。` : "",
     names.length
-      ? `规则引擎按症状标签匹配到候选经方：${names.join("、")} 。此为方证索引草稿，不是确诊，也不是可直接照服的处方。`
+      ? `规则引擎按症状标签匹配到候选经方：${names.join("、")}。此为方证索引草稿，不是确诊，也不是可直接照服的处方。`
       : "尚无足够标签匹配经方，请补充脉舌与二便。",
     "含附子、硝黄、细辛等药的方剂，剂量必须由执业中医师面诊后亲自核定。",
   ];

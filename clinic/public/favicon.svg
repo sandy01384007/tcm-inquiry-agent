@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="16" fill="#0d3a2c"/>
+  <circle cx="16" cy="16" r="11" fill="#2db84a"/>
+  <text x="16" y="21" text-anchor="middle" font-size="13" font-family="sans-serif" font-weight="700" fill="#ffffff">方</text>
+</svg>
