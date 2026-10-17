@@ -9,6 +9,7 @@ export const Route = createFileRoute("/history")({ component: HistoryPage });
 function HistoryPage() {
   const records = useClinic((s) => s.records);
   const loadRecord = useClinic((s) => s.loadRecord);
+  const scheduleFollowup = useClinic((s) => s.scheduleFollowup);
   const navigate = useNavigate();
   return (
     <ClinicShell>
@@ -45,6 +46,21 @@ function HistoryPage() {
                 }}
               >
                 载入再辨
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-3"
+                onClick={() => {
+                  scheduleFollowup({
+                    patientLabel: title,
+                    consultId: r.id,
+                    recheckItems: "结合本次看诊，遵医师交代复查",
+                  });
+                  void navigate({ to: "/followup" });
+                }}
+              >
+                安排随访
               </Button>
             </li>
             );

@@ -6,6 +6,7 @@ import { chatWithClinic } from "@/lib/tcm/clinic-chat";
 import { compressTongueFile } from "@/lib/tcm/image";
 import { chatLocal } from "@/lib/tcm/local-ai";
 import { yuan, sumFen } from "@/lib/tcm/money";
+import { askedToLoad, isRecordQuery, matchVisits, visitBrief } from "@/lib/tcm/record-lookup";
 import { useClinic } from "@/lib/tcm/store";
 import type { ChatTurn } from "@/lib/tcm/types";
 
@@ -30,6 +31,8 @@ export function ClinicChat() {
   const intake = useClinic((s) => s.intake);
   const role = useClinic((s) => s.role);
   const records = useClinic((s) => s.records);
+  const charts = useClinic((s) => s.charts);
+  const loadRecord = useClinic((s) => s.loadRecord);
   const bills = useClinic((s) => s.bills);
   const localAi = useClinic((s) => s.localAi);
   const [text, setText] = useState("");
@@ -50,7 +53,7 @@ export function ClinicChat() {
   function speak(words: string) {
     if (!speakOn || typeof window === "undefined" || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(words.slice(0, 280));
+    const u = new SpeechSynthesisUtterance(words.slice(0, 480));
     u.lang = "zh-CN";
     u.rate = 1;
     window.speechSynthesis.speak(u);
@@ -78,7 +81,7 @@ export function ClinicChat() {
     r.interimResults = false;
     r.onresult = (ev) => {
       const said = ev.results[0]?.[0]?.transcript ?? "";
-      if (said) setText((t) => (t ? `${t}${said}` : said));
+      if (said) void reply(said, "");
     };
     r.onerror = () => setListening(false);
     r.onend = () => setListening(false);
@@ -98,22 +101,42 @@ export function ClinicChat() {
     }
   }
 
-  async function send() {
-    const q = text.trim();
-    if ((!q && !photo) || busy) return;
+  async function reply(q: string, img: string) {
+    if ((!q && !img) || busy) return;
     const user: ChatTurn = {
       role: "user",
       text: q || "（看图）",
       at: new Date().toISOString(),
-      image: photo || undefined,
+      image: img || undefined,
     };
     addChat(user);
     setText("");
-    const img = photo;
     setPhoto("");
     setBusy(true);
     setErr("");
-    const last = records[0];
+    const found = matchVisits(records, q, patient);
+    const brief = visitBrief(found.hits, charts, found.name);
+    if (q && askedToLoad(q)) {
+      const id = found.hits[0]?.id;
+      if (!id) {
+        addChat({ role: "assistant", text: brief, at: new Date().toISOString() });
+        speak(brief);
+      } else {
+        loadRecord(id);
+        const said = `已把 ${found.hits[0].patient.name || "该患者"} ${found.hits[0].patient.visitDate || ""} 的看诊载入看诊页。请医师复核，我不能据此改方。`;
+        addChat({ role: "assistant", text: said, at: new Date().toISOString() });
+        speak(said);
+      }
+      setBusy(false);
+      return;
+    }
+    if (q && isRecordQuery(q)) {
+      addChat({ role: "assistant", text: brief, at: new Date().toISOString() });
+      speak(brief);
+      setBusy(false);
+      return;
+    }
+    const last = found.hits[0] ?? records[0];
     const pending = bills.find((b) => b.status === "待收");
     const payload = {
       messages: [...chats, user].map((m) => ({ ...m, image: undefined })),
@@ -133,13 +156,12 @@ export function ClinicChat() {
           : bills[0]
             ? `最近 ${bills[0].status} ¥${yuan(sumFen(bills[0].items))}`
             : "",
+        recordBrief: found.hits.length ? brief : visitBrief(matchVisits(records, "", patient).hits, charts, patient.name),
       },
       image: img || undefined,
     };
     try {
-      const res = localAi.enabled
-        ? await chatLocal(localAi, payload)
-        : await chatWithClinic({ data: payload });
+      const res = localAi.enabled ? await chatLocal(localAi, payload) : await chatWithClinic({ data: payload });
       if (!res.ok) setErr(res.error || "对话失败");
       else {
         addChat({ role: "assistant", text: res.text, at: new Date().toISOString() });
@@ -149,6 +171,10 @@ export function ClinicChat() {
       setErr("网络异常");
     }
     setBusy(false);
+  }
+
+  async function send() {
+    await reply(text.trim(), photo);
   }
 
   return (
@@ -202,7 +228,7 @@ export function ClinicChat() {
               <div className="flex gap-2">
                 <AiDoctorAvatar size={36} />
                 <p className="rounded-2xl rounded-tl-sm bg-secondary px-3 py-2 text-sm">
-                  您好，我是 AI 医生。可以打字、说话或把舌象、化验单拍照给我看。我只是助手，处方须医师核定。
+                  您好，我是 AI 医生。打字或说话都可以调本机病历，例如「调出张三的病历」。没有的记录我不会编。处方仍须医师核定。
                 </p>
               </div>
             )}
@@ -279,7 +305,7 @@ export function ClinicChat() {
             <input
               className="h-11 min-w-0 flex-1 rounded-md border border-border bg-bg px-3 text-sm"
               value={text}
-              placeholder={listening ? "正在听…" : "对 AI 医生说…"}
+              placeholder={listening ? "正在听…" : "调出某患者的病历…"}
               onChange={(e) => setText(e.target.value)}
             />
             <Button type="submit" disabled={busy || (!text.trim() && !photo)} className="px-3">

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, ClipboardList, ScanLine, Stethoscope, Wallet } from "lucide-react";
+import { Bell, BookOpen, ClipboardList, FileText, Pill, ScanLine, Stethoscope, Wallet } from "lucide-react";
 import { ClinicChat } from "@/components/clinic-chat";
 import { useClinic } from "@/lib/tcm/store";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,12 @@ import { cn } from "@/lib/utils";
 export function ClinicShell({ children }: { children: ReactNode }) {
   const role = useClinic((s) => s.role);
   const setRole = useClinic((s) => s.setRole);
+  const dueFollow = useClinic((s) => s.followups.filter((f) => f.status === "待打卡" && new Date(f.dueAt).getTime() <= Date.now()).length);
+  const pendingRx = useClinic(
+    (s) =>
+      s.dispenses.filter((d) => d.status === "待审方" || d.status === "已审方" || d.status === "已配药").length +
+      s.westOrders.filter((d) => d.status === "待核").length,
+  );
 
   return (
     <div className="min-h-screen bg-bg text-fg">
@@ -42,11 +48,38 @@ export function ClinicShell({ children }: { children: ReactNode }) {
               检验
             </Link>
             <Link
+              to="/rx"
+              className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 py-2 text-white/90 hover:bg-white/10"
+            >
+              <FileText className="size-4" />
+              处方
+            </Link>
+            <Link
               to="/billing"
               className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 py-2 text-white/90 hover:bg-white/10"
             >
               <Wallet className="size-4" />
               收费
+            </Link>
+            <Link
+              to="/pharmacy"
+              className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 py-2 text-white/90 hover:bg-white/10"
+            >
+              <Pill className="size-4" />
+              药房
+              {pendingRx > 0 && (
+                <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground">{pendingRx}</span>
+              )}
+            </Link>
+            <Link
+              to="/followup"
+              className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 py-2 text-white/90 hover:bg-white/10"
+            >
+              <Bell className="size-4" />
+              随访
+              {dueFollow > 0 && (
+                <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground">{dueFollow}</span>
+              )}
             </Link>
             <Link
               to="/history"
@@ -73,6 +106,16 @@ export function ClinicShell({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
+      {dueFollow > 0 && (
+        <div className="bg-primary text-primary-foreground print:hidden">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-2 text-sm">
+            <p>有 {dueFollow} 条随访到期待打卡。只收集情况，不能在线开方或调药。</p>
+            <Link to="/followup" className="font-semibold underline">
+              去随访
+            </Link>
+          </div>
+        </div>
+      )}
       <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
       <ClinicChat />
     </div>

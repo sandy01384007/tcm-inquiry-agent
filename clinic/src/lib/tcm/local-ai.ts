@@ -9,6 +9,7 @@ export type ClinicChatPayload = {
     formulaNames: string[];
     eight: string[];
     billHint: string;
+    recordBrief: string;
   };
   image?: string;
 };
@@ -26,7 +27,11 @@ ${ctx.role === "助手" ? "助手场景只帮助采集与解释，不能核定�
 主诉 ${ctx.intake.chief || "未填"} 寒热 ${ctx.intake.coldHeat} 汗 ${ctx.intake.sweat}
 二便 ${ctx.intake.stool}/${ctx.intake.urine} 舌 ${ctx.intake.tongue} 脉 ${ctx.intake.pulse}
 八纲 ${ctx.eight.join("、") || "尚未辨证"} 候选方 ${ctx.formulaNames.join("、") || "无"}
-收费 ${ctx.billHint || "无"}`;
+收费 ${ctx.billHint || "无"}
+
+【本机过往看诊，只能复述，不得编造】
+${ctx.recordBrief || "未检索到其他看诊"}
+用户用语音或文字调阅病历时，只根据上面的记录回答。没有的日期、主诉、方名一律说本机没有。不要说出身份证号。`;
 }
 
 export async function chatLocal(local: LocalAi, payload: ClinicChatPayload): Promise<{ ok: boolean; text: string; error?: string }> {

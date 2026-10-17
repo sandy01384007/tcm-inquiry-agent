@@ -80,11 +80,23 @@ export function TongueCapture({ value, note, verified, onChange }: Props) {
         placeholder="如淡红舌薄白苔，或拍照后点 AI 校验"
       />
       <div className="mt-2 flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => cameraRef.current?.click()}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={busy}
+          onClick={() => cameraRef.current?.click()}
+        >
           <Camera className="size-4" />
           拍照
         </Button>
-        <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => albumRef.current?.click()}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={busy}
+          onClick={() => albumRef.current?.click()}
+        >
           <ImagePlus className="size-4" />
           上传
         </Button>
@@ -93,24 +105,52 @@ export function TongueCapture({ value, note, verified, onChange }: Props) {
           {busy ? "校验中…" : "AI 校验"}
         </Button>
       </div>
-      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
-        onChange={(e) => { void onFile(e.target.files?.[0]); e.target.value = ""; }} />
-      <input ref={albumRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-        onChange={(e) => { void onFile(e.target.files?.[0]); e.target.value = ""; }} />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          void onFile(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={albumRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          void onFile(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
       {photo && (
         <div className="relative mt-3 max-w-xs">
-          <img src={photo} alt="舌象照片" className="h-40 w-full rounded-xl border border-border object-cover" />
-          <button type="button" onClick={clearPhoto}
+          <img
+            src={photo}
+            alt="舌象照片"
+            className="h-40 w-full rounded-xl border border-border object-cover"
+          />
+          <button
+            type="button"
+            onClick={clearPhoto}
             className="absolute right-2 top-2 inline-flex size-9 items-center justify-center rounded-full bg-card text-fg shadow-sm"
-            aria-label="删除照片">
+            aria-label="删除照片"
+          >
             <X className="size-4" />
           </button>
         </div>
       )}
-      {verified && <p className="mt-2 text-xs text-primary">AI 质控通过 · 须医师目视复核</p>}
+      {verified && (
+        <p className="mt-2 text-xs text-primary">AI 质控通过 · 须医师目视复核</p>
+      )}
       {note && <p className="mt-1 text-xs text-muted">{note}</p>}
       {msg && <p className="mt-1 text-xs text-muted">{msg}</p>}
-      <p className="mt-1 text-xs text-muted">照片仅用于本次校验，不写入长期病历。自然光、张口伸舌、避免闪光灯。</p>
+      <p className="mt-1 text-xs text-muted">
+        照片仅用于本次校验，不写入长期病历。自然光、张口伸舌、避免闪光灯。
+      </p>
     </div>
   );
 }
