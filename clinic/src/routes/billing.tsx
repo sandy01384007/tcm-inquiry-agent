@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ClinicShell } from "@/components/clinic-shell";
 import { Gate } from "@/components/gate";
 import { Button } from "@/components/ui/button";
 import { compressTongueFile } from "@/lib/tcm/image";
-import { parseYuan, sumFen, yuan } from "@/lib/tcm/money";
+import { parseYuan, sumFen, westUnitFen, yuan } from "@/lib/tcm/money";
 import { useClinic } from "@/lib/tcm/store";
 import { PAY_METHODS, type Bill, type BillItem, type BillItemKind, type PayMethod } from "@/lib/tcm/types";
 import { WESTERN } from "@/lib/tcm/western";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/billing")({ component: BillingPage });
 
 function westShortage(
   rows: BillItem[],
-  stock: { name: string; qty: number; expiry: string; spec: string; unit: "盒" | "瓶" | "板" | "支"; warnAt: number; batch: string }[],
+  stock: { name: string; qty: number; expiry: string; spec: string; unit: "盒" | "瓶" | "板" | "支"; warnAt: number; batch: string; priceFen: number }[],
   orders: { status: "待核" | "已发" | "退回"; lines: { name: string; qty: number }[] }[],
 ) {
   const names = rows.filter((row) => itemKind(row) === "西药").map((row) => westName(row.name)).filter(Boolean);
@@ -37,13 +37,14 @@ function patientLabel() {
 function itemKind(row: BillItem): BillItemKind {
   if (row.kind) return row.kind;
   if (row.name.startsWith("西药")) return "西药";
+  if (row.name.includes("挂号")) return "挂号";
   if (row.name.startsWith("中药")) return "中药";
   if (row.name.includes("代煎")) return "代煎";
   if (row.name.includes("诊金")) return "诊金";
   return "其他";
 }
 
-const CHARGE_KINDS: BillItemKind[] = ["诊金", "中药", "西药", "代煎", "其他"];
+const CHARGE_KINDS: BillItemKind[] = ["挂号", "诊金", "中药", "西药", "代煎", "其他"];
 
 function BillingPage() {
   const bills = useClinic((s) => s.bills);
@@ -60,22 +61,36 @@ function BillingPage() {
   const westStock = useClinic((s) => s.westStock);
   const westOrders = useClinic((s) => s.westOrders);
   const westRx = useClinic((s) => s.westRx);
+  const fees = useClinic((s) => s.fees);
+  const setFees = useClinic((s) => s.setFees);
   const wxRef = useRef<HTMLInputElement>(null);
   const aliRef = useRef<HTMLInputElement>(null);
 
-  const [items, setItems] = useState<BillItem[]>(
-    draft?.items?.length
-      ? draft.items
-      : [
-          { name: "诊金", amountFen: 5000, kind: "诊金" },
-          { name: draft?.formulaName ? `中药 ${draft.formulaName}` : "中药", amountFen: 0, kind: "中药" },
-          { name: "代煎", amountFen: 1000, kind: "代煎" },
-        ],
-  );
+  const [items, setItems] = useState<BillItem[]>(() => {
+    const saved = useClinic.getState();
+    if (draft?.items?.length) return draft.items;
+    return [
+      { name: "挂号费", amountFen: saved.fees.regFen, kind: "挂号" },
+      { name: "诊金", amountFen: saved.fees.consultFen, kind: "诊金" },
+      { name: draft?.formulaName ? `中药 ${draft.formulaName}` : "中药", amountFen: saved.fees.herbFen, kind: "中药" },
+      { name: "代煎", amountFen: saved.fees.decoctFen, kind: "代煎" },
+    ];
+  });
   const [method, setMethod] = useState<PayMethod>("微信");
   const [note, setNote] = useState("");
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
+  const [consultFee, setConsultFee] = useState(yuan(fees.consultFen));
+  const [herbFee, setHerbFee] = useState(yuan(fees.herbFen));
+  const [decoctFee, setDecoctFee] = useState(yuan(fees.decoctFen));
+  const [regFee, setRegFee] = useState(yuan(fees.regFen));
+
+  useEffect(() => {
+    setConsultFee(yuan(fees.consultFen));
+    setHerbFee(yuan(fees.herbFen));
+    setDecoctFee(yuan(fees.decoctFen));
+    setRegFee(yuan(fees.regFen));
+  }, [fees.consultFen, fees.herbFen, fees.decoctFen, fees.regFen]);
 
   const total = useMemo(() => sumFen(items), [items]);
   const westFen = useMemo(() => sumFen(items.filter((row) => itemKind(row) === "西药")), [items]);
@@ -152,9 +167,76 @@ function BillingPage() {
             </p>
           </div>
           <p className="text-sm">
-            今日已收 <span className="font-medium">¥{yuan(todayFen)}</span>
+            今日已收 <span className="font-medium">{yuan(todayFen)}元</span>
           </p>
         </div>
+
+        <section className="mt-4 rounded-2xl border border-border bg-card p-4">
+          <h2 className="text-sm font-semibold">收费金额设置</h2>
+          <p className="mt-1 text-xs text-muted">保存后，挂号费、诊金、中药、代煎和本单里的其他费用一起计入合计。西药按药房单价乘盒数。</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-4">
+            {(
+              [
+                ["诊金", consultFee, setConsultFee],
+                ["中药", herbFee, setHerbFee],
+                ["代煎", decoctFee, setDecoctFee],
+                ["挂号费", regFee, setRegFee],
+              ] as const
+            ).map(([label, value, setValue]) => (
+              <label key={label} className="text-xs text-muted">
+                {label}（元）
+                <input
+                  className="mt-1 h-11 w-full rounded-md border border-border bg-bg px-3 text-sm text-fg"
+                  inputMode="decimal"
+                  value={value}
+                  disabled={role !== "医师"}
+                  onChange={(e) => setValue(e.target.value)}
+                />
+              </label>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={role !== "医师"}
+              onClick={() => {
+                const next = {
+                  consultFen: parseYuan(consultFee),
+                  herbFen: parseYuan(herbFee),
+                  decoctFen: parseYuan(decoctFee),
+                  regFen: parseYuan(regFee),
+                };
+                setFees(next);
+                setItems((rows) => {
+                  const priced = rows.map((row) => {
+                    const kind = itemKind(row);
+                    if (kind === "挂号") return { ...row, name: row.name || "挂号费", amountFen: next.regFen, kind: "挂号" as const };
+                    if (kind === "诊金") return { ...row, amountFen: next.consultFen, kind: "诊金" as const };
+                    if (kind === "中药") return { ...row, amountFen: next.herbFen, kind: "中药" as const };
+                    if (kind === "代煎") return { ...row, amountFen: next.decoctFen, kind: "代煎" as const };
+                    if (kind === "西药") {
+                      const unit = westUnitFen(westStock, westName(row.name));
+                      return unit > 0 ? { ...row, amountFen: unit * Math.max(1, row.qty ?? 1) } : row;
+                    }
+                    return row;
+                  });
+                  const extra: BillItem[] = [];
+                  if (!priced.some((row) => itemKind(row) === "挂号")) extra.push({ name: "挂号费", amountFen: next.regFen, kind: "挂号" });
+                  if (!priced.some((row) => itemKind(row) === "诊金")) extra.push({ name: "诊金", amountFen: next.consultFen, kind: "诊金" });
+                  if (!priced.some((row) => itemKind(row) === "中药")) {
+                    extra.push({ name: draft?.formulaName ? `中药 ${draft.formulaName}` : "中药", amountFen: next.herbFen, kind: "中药" });
+                  }
+                  if (!priced.some((row) => itemKind(row) === "代煎")) extra.push({ name: "代煎", amountFen: next.decoctFen, kind: "代煎" });
+                  return [...extra, ...priced];
+                });
+                setMsg("金额已保存。挂号费、诊金、中药、代煎和已有的其他费用已计入合计。");
+              }}
+            >
+              保存金额
+            </Button>
+          </div>
+        </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-2xl border border-border bg-card p-4">
@@ -201,7 +283,11 @@ function BillingPage() {
                       type="number"
                       min={1}
                       value={row.qty ?? 1}
-                      onChange={(e) => patchItem(i, { qty: Math.max(1, Number(e.target.value) || 1) })}
+                      onChange={(e) => {
+                        const qty = Math.max(1, Number(e.target.value) || 1);
+                        const unit = westUnitFen(westStock, westName(row.name));
+                        patchItem(i, { qty, amountFen: unit > 0 ? unit * qty : row.amountFen });
+                      }}
                     />
                     <span>盒</span>
                   </li>
@@ -236,7 +322,7 @@ function BillingPage() {
                     setItems((rows) =>
                       rows.some((r) => r.name === `西药 ${w.name}`)
                         ? rows
-                        : [...rows, { name: `西药 ${w.name}`, amountFen: 0, kind: "西药", qty: 1 }],
+                        : [...rows, { name: `西药 ${w.name}`, amountFen: westUnitFen(westStock, w.name), kind: "西药", qty: 1 }],
                     )
                   }
                 >
@@ -244,9 +330,11 @@ function BillingPage() {
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-muted">西药只记收费金额，不生成处方，也不发药。无处方权不得收取西药款。金额由诊所按进价自填。</p>
-            <p className="mt-3 text-lg font-semibold">合计 ¥{yuan(total)}</p>
-            <p className="text-sm text-muted">其中西药 ¥{yuan(westFen)}</p>
+            <p className="mt-2 text-xs text-muted">金额按下方收费设置和西药单价带入，这一单仍可改。西药须先有已签处方。</p>
+            <p className="mt-3 text-lg font-semibold">合计 {yuan(total)}元</p>
+            <p className="text-sm text-muted">
+              {CHARGE_KINDS.map((kind) => `${kind} ${yuan(sumFen(items.filter((row) => itemKind(row) === kind)))}元`).join(" · ")}
+            </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
               {PAY_METHODS.map((m) => (
@@ -360,10 +448,10 @@ function BillingPage() {
                 )}
               </>
             )}
-            <p className="mt-4 text-center text-2xl font-semibold">¥{yuan(current ? sumFen(current.items) : total)}</p>
+            <p className="mt-4 text-center text-2xl font-semibold">{yuan(current ? sumFen(current.items) : total)}元</p>
             {(current ? sumFen(current.items.filter((item) => itemKind(item) === "西药")) : westFen) > 0 && (
               <p className="mt-1 text-center text-sm text-muted">
-                含西药 ¥{yuan(current ? sumFen(current.items.filter((item) => itemKind(item) === "西药")) : westFen)}
+                含西药 {yuan(current ? sumFen(current.items.filter((item) => itemKind(item) === "西药")) : westFen)}元
               </p>
             )}
             <p className="mt-1 text-center text-xs text-muted">
@@ -391,7 +479,7 @@ function BillingPage() {
             <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-3">
               <div>
                 <p className="text-sm font-medium">
-                  {b.patientLabel} · {b.method} · ¥{yuan(sumFen(b.items))}
+                  {b.patientLabel} · {b.method} · {yuan(sumFen(b.items))}元
                 </p>
                 <p className="text-xs text-muted">
                   {b.status} · {new Date(b.paidAt || b.createdAt).toLocaleString()}

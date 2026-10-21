@@ -10,6 +10,7 @@ import { isEmergencyIntake } from "@/lib/tcm/emergency";
 import { explainPattern } from "@/lib/tcm/explain";
 import { getDecoction } from "@/lib/tcm/decoction";
 import { parseGrams, stockGaps } from "@/lib/tcm/pharmacy";
+import { westUnitFen } from "@/lib/tcm/money";
 import { matchWestern } from "@/lib/tcm/western";
 import { availableWest } from "@/lib/tcm/west-stock";
 import { TongueCapture } from "@/components/tongue-capture";
@@ -93,6 +94,7 @@ function Consult() {
   const extraFormulas = useClinic((s) => s.extraFormulas);
   const stock = useClinic((s) => s.stock);
   const westStock = useClinic((s) => s.westStock);
+  const fees = useClinic((s) => s.fees);
   const westOrders = useClinic((s) => s.westOrders);
   const westRx = useClinic((s) => s.westRx);
   const saveWestRx = useClinic((s) => s.saveWestRx);
@@ -564,6 +566,8 @@ function Consult() {
                         pregnancy: intake.pregnancy,
                         child: intake.child,
                         impression: intake.chief,
+                        doctorSign: "",
+                        pharmacistSign: "",
                         lines,
                         status: "草稿",
                       });
@@ -631,12 +635,13 @@ function Consult() {
                     consultId: recordId ?? undefined,
                     formulaName: top.formula.name,
                     items: [
-                      { name: "诊金", amountFen: 5000, kind: "诊金" },
-                      { name: `中药 ${top.formula.name}`, amountFen: 0, kind: "中药" },
-                      { name: "代煎", amountFen: 1000, kind: "代煎" },
+                      { name: "挂号费", amountFen: fees.regFen, kind: "挂号" },
+                      { name: "诊金", amountFen: fees.consultFen, kind: "诊金" },
+                      { name: `中药 ${top.formula.name}`, amountFen: fees.herbFen, kind: "中药" },
+                      { name: "代煎", amountFen: fees.decoctFen, kind: "代煎" },
                       ...(westRx.find((rx) => rx.chartId === patient.chartId && rx.status === "已签")?.lines.map((line) => ({
                         name: `西药 ${line.name}`,
-                        amountFen: 0,
+                        amountFen: westUnitFen(westStock, line.name) * line.qty,
                         kind: "西药" as const,
                         qty: line.qty,
                       })) ?? []),

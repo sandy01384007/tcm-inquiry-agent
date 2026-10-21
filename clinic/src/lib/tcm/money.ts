@@ -11,3 +11,7 @@ export function parseYuan(s: string) {
 export function sumFen(items: { amountFen: number }[]) {
   return items.reduce((a, x) => a + Math.max(0, x.amountFen), 0);
 }
+
+export function westUnitFen(stock: { name: string; priceFen?: number }[], name: string) {
+  return Math.max(0, stock.find((item) => item.name === name)?.priceFen ?? 0);
+}

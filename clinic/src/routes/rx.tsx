@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { flushSync } from "react-dom";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ClinicShell } from "@/components/clinic-shell";
 import { Gate } from "@/components/gate";
 import { Button } from "@/components/ui/button";
 import { useClinic } from "@/lib/tcm/store";
+import { westUnitFen } from "@/lib/tcm/money";
 import { availableWest } from "@/lib/tcm/west-stock";
 import { rxBlock } from "@/lib/tcm/west-rx";
 import { WESTERN } from "@/lib/tcm/western";
@@ -24,12 +26,21 @@ function RxPage() {
   const saveWestRx = useClinic((s) => s.saveWestRx);
   const patchWestRx = useClinic((s) => s.patchWestRx);
   const signWestRx = useClinic((s) => s.signWestRx);
+  const markWestPrinted = useClinic((s) => s.markWestPrinted);
   const voidWestRx = useClinic((s) => s.voidWestRx);
   const setBillDraft = useClinic((s) => s.setBillDraft);
   const [openId, setOpenId] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
   const current = list.find((rx) => rx.id === openId) ?? null;
   const physician = role === "医师";
+
+  function signHint(rx: WestRx) {
+    if (!physician) return "当前是助手，不能签署。请把右上角换成医师。";
+    const block = rxBlock(rx);
+    if (block) return block;
+    const short = rx.lines.some((line) => availableWest(stock, orders, line.name) < line.qty);
+    return short ? "可以签署。库存不足的药签署后仍不能收费、发药，请先入库。" : "可以签署。打印时姓名按草体输出。";
+  }
 
   function blank(): WestRx {
     return {
@@ -42,6 +53,8 @@ function RxPage() {
       pregnancy: intake.pregnancy,
       child: intake.child,
       impression: intake.chief,
+      doctorSign: "",
+      pharmacistSign: "",
       lines: [],
       status: "草稿",
     };
@@ -63,12 +76,34 @@ function RxPage() {
   function charge(rx: WestRx) {
     setBillDraft({
       consultId: rx.consultId,
-      items: rx.lines.map((line) => ({ name: `西药 ${line.name}`, amountFen: 0, kind: "西药" as const, qty: line.qty })),
+      items: rx.lines.map((line) => ({
+        name: `西药 ${line.name}`,
+        amountFen: westUnitFen(useClinic.getState().westStock, line.name) * line.qty,
+        kind: "西药" as const,
+        qty: line.qty,
+      })),
     });
     void navigate({ to: "/billing" });
   }
 
-  function printRx() {
+  async function printRx(id: string) {
+    const rx = useClinic.getState().westRx.find((item) => item.id === id);
+    if (!rx || rx.status === "草稿" || rx.status === "作废") {
+      setMsg("请先在程序里签署。草稿和作废处方不打印。");
+      return;
+    }
+    if (!(rx.doctorSign ?? "").trim() || !(rx.pharmacistSign ?? "").trim()) {
+      setMsg("请先在程序里打好医师和药师签名，打印才会带上同样的草体姓名。");
+      return;
+    }
+    setOpenId(id);
+    try {
+      await document.fonts.load("400 32px CaoTi");
+      await document.fonts.ready;
+    } catch {
+      /* 字体未就绪时仍按程序记录打印 */
+    }
+    flushSync(() => markWestPrinted(id));
     document.documentElement.classList.add("print-rx");
     const clear = () => {
       document.documentElement.classList.remove("print-rx");
@@ -120,6 +155,7 @@ function RxPage() {
                 <p className="text-xs text-muted">
                   {rx.id} · {rx.createdAt.slice(0, 16).replace("T", " ")}
                   {rx.signedAt ? ` · 签署 ${rx.signedAt.slice(0, 16).replace("T", " ")}` : ""}
+                  {rx.printedAt ? ` · 已打印 ${rx.printedAt.slice(0, 16).replace("T", " ")}` : ""}
                 </p>
               </button>
               {openId === rx.id && (
@@ -158,19 +194,51 @@ function RxPage() {
                   </ul>
                   {rx.child && <p className="mt-2 text-xs text-seal">儿童处方不得使用系统剂量，须医师按体重手写。</p>}
                   {rx.pregnancy && <p className="mt-1 text-xs text-seal">妊娠不签布洛芬。</p>}
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <label className="text-sm">
+                      医师签名
+                      <input
+                        className={inputCls}
+                        disabled={rx.status !== "草稿"}
+                        placeholder="输入医师姓名"
+                        value={rx.doctorSign ?? ""}
+                        onChange={(e) => patchWestRx(rx.id, { doctorSign: e.target.value })}
+                      />
+                      <span className="rx-sign mt-1 block">{(rx.doctorSign ?? "").trim() || "草体预览"}</span>
+                    </label>
+                    <label className="text-sm">
+                      审核药师
+                      <input
+                        className={inputCls}
+                        disabled={rx.status === "作废" || rx.status === "已发"}
+                        placeholder="输入药师姓名"
+                        value={rx.pharmacistSign ?? ""}
+                        onChange={(e) => patchWestRx(rx.id, { pharmacistSign: e.target.value })}
+                      />
+                      <span className="rx-sign mt-1 block">{(rx.pharmacistSign ?? "").trim() || "草体预览"}</span>
+                    </label>
+                  </div>
+                  {rx.status === "草稿" && (
+                    <p className="mt-2 text-sm text-seal">{signHint(rx)}</p>
+                  )}
                   <div className="mt-3 flex flex-wrap gap-2 print:hidden">
                     <Button
                       type="button"
                       disabled={!physician || rx.status !== "草稿"}
-                      onClick={() => setMsg(signWestRx(rx.id) ? "已签署，可以去收费" : rxBlock(rx, stock, orders) || "不能签署")}
+                      onClick={() => setMsg(signWestRx(rx.id) ? "已签署，可以去收费" : rxBlock(useClinic.getState().westRx.find((item) => item.id === rx.id) ?? rx) || "不能签署")}
                     >
                       医师签署
                     </Button>
                     <Button type="button" variant="outline" disabled={rx.status !== "已签"} onClick={() => charge(rx)}>
                       去收费
                     </Button>
-                    <Button type="button" variant="outline" disabled={rx.status === "作废" || rx.lines.length === 0} onClick={printRx}>
-                      打印处方
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={rx.status === "草稿" || rx.status === "作废" || rx.lines.length === 0 || !(rx.doctorSign ?? "").trim() || !(rx.pharmacistSign ?? "").trim()}
+                      onClick={() => void printRx(rx.id)}
+                    >
+                      按程序打印
                     </Button>
                     {physician && (rx.status === "草稿" || rx.status === "已签") && (
                       <Button type="button" variant="ghost" onClick={() => voidWestRx(rx.id)}>
@@ -185,7 +253,7 @@ function RxPage() {
         </ul>
         {current && current.status !== "作废" && current.lines.length > 0 && (
           <div>
-            <p className="mb-2 text-sm text-muted print:hidden">下面这张就是要打印的处方笺。草稿会标明未签署，不得发药。</p>
+            <p className="mb-2 text-sm text-muted print:hidden">这张笺直接取自当前处方记录。签署并打上两个姓名后，打印内容与程序一致，并回写打印时间。</p>
             <RxSheet rx={current} stock={stock} />
           </div>
         )}
@@ -200,7 +268,9 @@ function RxSheet({ rx, stock }: { rx: WestRx; stock: WestStockItem[] }) {
       <p className="text-center text-sm tracking-[0.4em]">经方诊室</p>
       <h2 className="mt-1 text-center text-2xl font-extrabold">西药处方笺</h2>
       <p className="mt-2 text-center text-xs">
-        {rx.id} · {rx.status} · {(rx.signedAt || rx.createdAt).slice(0, 16).replace("T", " ")}
+        {rx.id} · {rx.status}
+        {rx.signedAt ? ` · 签署 ${rx.signedAt.slice(0, 16).replace("T", " ")}` : ""}
+        {rx.printedAt ? ` · 打印 ${rx.printedAt.slice(0, 16).replace("T", " ")}` : ""}
       </p>
       {rx.status === "草稿" && <p className="mt-2 text-center text-sm font-semibold text-seal">草稿未签署，不得发药</p>}
       <div className="mt-4 grid grid-cols-2 gap-2 border-y border-zinc-300 py-3 text-sm">
@@ -226,11 +296,21 @@ function RxSheet({ rx, stock }: { rx: WestRx; stock: WestStockItem[] }) {
           );
         })}
       </ol>
-      <div className="mt-8 flex justify-between text-sm">
-        <p>医师签名：____________</p>
-        <p>审核药师：____________</p>
+      <div className="mt-8 flex justify-between gap-6 text-sm">
+        <p>
+          医师签名：
+          <span className="rx-sign ml-1 inline-block min-w-28 border-b border-zinc-800 px-2">
+            {rx.doctorSign || "未填写"}
+          </span>
+        </p>
+        <p>
+          审核药师：
+          <span className="rx-sign ml-1 inline-block min-w-28 border-b border-zinc-800 px-2">
+            {rx.pharmacistSign || "未填写"}
+          </span>
+        </p>
       </div>
-      <p className="mt-6 text-xs text-zinc-600">本笺供诊所内部执行，不是法定电子处方。无西药处方权不得开具或发药。抗生素、麻醉药品和注射剂不在此开具。</p>
+      <p className="mt-6 text-xs text-zinc-600">本笺由经方诊室程序生成，编号、药品、用法和草体签名与系统记录一致。不是法定电子处方。</p>
     </article>
   );
 }

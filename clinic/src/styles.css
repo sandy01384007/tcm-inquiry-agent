@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "CaoTi";
+  src: url("/fonts/liujianmaocao.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-bg: #f4f8f5;
   --color-fg: #10261d;
@@ -50,6 +58,12 @@
   }
 }
 
+.rx-sign {
+  font-family: "CaoTi", cursive;
+  font-size: 1.85rem;
+  line-height: 1.2;
+}
+
 @media print {
   header,
   nav {
@@ -75,5 +89,8 @@
     color: #111 !important;
     background: white !important;
     border: none !important;
+  }
+  html.print-rx .rx-sign {
+    font-family: "CaoTi", cursive !important;
   }
 }

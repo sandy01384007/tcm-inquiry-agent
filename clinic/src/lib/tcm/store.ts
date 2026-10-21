@@ -6,6 +6,7 @@ import {
   EMPTY_PAY_CODES,
   EMPTY_LOCAL_AI,
   EMPTY_FOLLOW_CONFIG,
+  DEFAULT_FEES,
   todayDate,
   type Bill,
   type BillDraft,
@@ -13,6 +14,7 @@ import {
   type Chart,
   type ConsultRecord,
   type DispenseOrder,
+  type FeeSchedule,
   type FollowCheckin,
   type FollowConfig,
   type FollowTask,
@@ -47,6 +49,7 @@ type State = {
   reports: ImagingReport[];
   bills: Bill[];
   payCodes: PayCodes;
+  fees: FeeSchedule;
   billDraft: BillDraft | null;
   chats: ChatTurn[];
   chatOpen: boolean;
@@ -75,6 +78,7 @@ type State = {
   saveBill: (bill: Bill) => void;
   updateBill: (id: string, patch: Partial<Bill>) => void;
   setPayCodes: (patch: Partial<PayCodes>) => void;
+  setFees: (patch: Partial<FeeSchedule>) => void;
   setBillDraft: (draft: BillDraft | null) => void;
   addChat: (turn: ChatTurn) => void;
   clearChat: () => void;
@@ -110,6 +114,7 @@ type State = {
     note: string;
     batch: string;
     expiry: string;
+    priceFen: number;
   }) => boolean;
   patchWestOrder: (id: string, lines: { name: string; qty: number }[]) => void;
   rejectWest: (id: string) => void;
@@ -117,6 +122,7 @@ type State = {
   saveWestRx: (rx: WestRx) => void;
   patchWestRx: (id: string, patch: Partial<WestRx>) => void;
   signWestRx: (id: string) => boolean;
+  markWestPrinted: (id: string) => void;
   voidWestRx: (id: string) => void;
 };
 
@@ -196,6 +202,7 @@ export const useClinic = create<State>()(
       reports: [],
       bills: [],
       payCodes: EMPTY_PAY_CODES,
+      fees: DEFAULT_FEES,
       billDraft: null,
       chats: [],
       chatOpen: false,
@@ -281,6 +288,7 @@ export const useClinic = create<State>()(
           return { bills, dispenses, westOrders, westRx: markRxPaid(s.westRx, bill), followups: trimFollowImages([task, ...s.followups]) };
         }),
       setPayCodes: (patch) => set((s) => ({ payCodes: { ...s.payCodes, ...patch } })),
+      setFees: (patch) => set((s) => ({ fees: { ...s.fees, ...patch } })),
       setBillDraft: (billDraft) => set({ billDraft }),
       addChat: (turn) =>
         set((s) => {
@@ -464,6 +472,7 @@ export const useClinic = create<State>()(
                 warnAt: 5,
                 batch: input.batch.trim(),
                 expiry: input.expiry,
+                priceFen: Math.max(0, Math.round(input.priceFen)),
               });
             } else {
               westStock[idx] = {
@@ -472,6 +481,7 @@ export const useClinic = create<State>()(
                 spec: input.spec.trim() || westStock[idx].spec,
                 batch: input.batch.trim() || westStock[idx].batch,
                 expiry: input.expiry || westStock[idx].expiry,
+                priceFen: input.priceFen > 0 ? Math.round(input.priceFen) : westStock[idx].priceFen,
               };
             }
           } else {
@@ -542,7 +552,13 @@ export const useClinic = create<State>()(
       saveWestRx: (rx) => set((s) => ({ westRx: [rx, ...s.westRx.filter((item) => item.id !== rx.id)].slice(0, 200) })),
       patchWestRx: (id, patch) =>
         set((s) => ({
-          westRx: s.westRx.map((rx) => (rx.id === id && rx.status === "草稿" ? { ...rx, ...patch, id: rx.id, status: "草稿" } : rx)),
+          westRx: s.westRx.map((rx) => {
+            if (rx.id !== id || rx.status === "作废" || rx.status === "已发") return rx;
+            if (rx.status !== "草稿") {
+              return patch.pharmacistSign === undefined ? rx : { ...rx, pharmacistSign: patch.pharmacistSign };
+            }
+            return { ...rx, ...patch, id: rx.id, status: "草稿" };
+          }),
         })),
       signWestRx: (id) => {
         let ok = false;
@@ -558,6 +574,14 @@ export const useClinic = create<State>()(
         });
         return ok;
       },
+      markWestPrinted: (id) =>
+        set((s) => ({
+          westRx: s.westRx.map((rx) =>
+            rx.id === id && rx.status !== "草稿" && rx.status !== "作废" && (rx.doctorSign ?? "").trim() && (rx.pharmacistSign ?? "").trim()
+              ? { ...rx, printedAt: new Date().toISOString() }
+              : rx,
+          ),
+        })),
       voidWestRx: (id) =>
         set((s) => ({
           westRx:
@@ -595,6 +619,7 @@ export const useClinic = create<State>()(
           reports: p.reports ?? current.reports,
           bills: p.bills ?? current.bills,
           payCodes: p.payCodes ?? current.payCodes,
+          fees: { ...DEFAULT_FEES, ...(p.fees ?? {}) },
           chats: p.chats ?? current.chats,
           extraFormulas: p.extraFormulas ?? current.extraFormulas,
           localAi: p.localAi ?? current.localAi,
@@ -603,10 +628,19 @@ export const useClinic = create<State>()(
           stock: p.stock ?? current.stock,
           stockMoves: p.stockMoves ?? current.stockMoves,
           dispenses: p.dispenses ?? current.dispenses,
-          westStock: (p.westStock ?? current.westStock).map((item) => ({ ...item, batch: item.batch ?? "", expiry: item.expiry ?? "" })),
+          westStock: (p.westStock ?? current.westStock).map((item) => ({
+            ...item,
+            batch: item.batch ?? "",
+            expiry: item.expiry ?? "",
+            priceFen: item.priceFen ?? 0,
+          })),
           westMoves: p.westMoves ?? current.westMoves,
           westOrders: p.westOrders ?? current.westOrders,
-          westRx: p.westRx ?? current.westRx,
+          westRx: (p.westRx ?? current.westRx).map((rx) => ({
+            ...rx,
+            doctorSign: rx.doctorSign ?? "",
+            pharmacistSign: rx.pharmacistSign ?? "",
+          })),
           followups: p.followups ?? current.followups,
           followConfig: {
             ...EMPTY_FOLLOW_CONFIG,

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useClinic } from "@/lib/tcm/store";
 import type { StockMoveKind, WestUnit } from "@/lib/tcm/types";
 import { availableWest, bannedWest, expiryState } from "@/lib/tcm/west-stock";
+import { parseYuan, yuan } from "@/lib/tcm/money";
 import { WESTERN } from "@/lib/tcm/western";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export function WestStockPane() {
   const [expiry, setExpiry] = useState("");
   const [unit, setUnit] = useState<WestUnit>("盒");
   const [qty, setQty] = useState("10");
+  const [price, setPrice] = useState("");
   const [kind, setKind] = useState<StockMoveKind>("入库");
   const [msg, setMsg] = useState("");
   const pharmacist = role === "医师";
@@ -36,7 +38,7 @@ export function WestStockPane() {
       return;
     }
     setMsg(
-      adjustWest({ name, spec, unit, qty: Number(qty), kind, note: kind, batch, expiry })
+      adjustWest({ name, spec, unit, qty: Number(qty), kind, note: kind, batch, expiry, priceFen: parseYuan(price) })
         ? "已写入西药库存"
         : "数量不够或药名无效",
     );
@@ -141,6 +143,7 @@ export function WestStockPane() {
             ))}
           </select>
           <input className={`${inputCls} w-20`} value={qty} onChange={(e) => setQty(e.target.value)} />
+          <input className={`${inputCls} w-24`} inputMode="decimal" placeholder="单价元" value={price} onChange={(e) => setPrice(e.target.value)} />
           <select className={inputCls} value={kind} onChange={(e) => setKind(e.target.value as StockMoveKind)}>
             {(["入库", "出库", "损耗"] as const).map((k) => (
               <option key={k}>{k}</option>
@@ -165,7 +168,7 @@ export function WestStockPane() {
                 )}
               >
                 {item.name} · {item.spec || "未写规格"} · {item.qty}
-                {item.unit}
+                {item.unit} · ¥{yuan(item.priceFen ?? 0)}/{item.unit}
                 {item.batch ? ` · 批号 ${item.batch}` : ""}
                 {item.expiry ? ` · 效期 ${item.expiry}` : ""}
                 {item.qty <= item.warnAt ? " · 低库存" : ""}

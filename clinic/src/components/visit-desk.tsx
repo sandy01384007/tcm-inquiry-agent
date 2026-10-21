@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { yuan, parseYuan } from "@/lib/tcm/money";
 import { findChart, maskId, nextSeq, openTicket } from "@/lib/tcm/registry";
@@ -17,6 +17,7 @@ export function VisitDesk() {
   const patchRegistration = useClinic((s) => s.patchRegistration);
   const callRegistration = useClinic((s) => s.callRegistration);
   const setPatient = useClinic((s) => s.setPatient);
+  const regFen = useClinic((s) => s.fees.regFen);
 
   const [name, setName] = useState("");
   const [sex, setSex] = useState("");
@@ -27,13 +28,16 @@ export function VisitDesk() {
   const [history, setHistory] = useState("");
   const [chronic, setChronic] = useState("");
   const [chartId, setChartId] = useState("");
-  const [fee, setFee] = useState("10");
+  const [fee, setFee] = useState(() => yuan(useClinic.getState().fees.regFen));
   const [method, setMethod] = useState<PayMethod>("现金");
   const [appointAt, setAppointAt] = useState("");
   const [msg, setMsg] = useState("");
   const [call, setCall] = useState("");
 
   const today = todayDate();
+  useEffect(() => {
+    setFee(yuan(regFen));
+  }, [regFen]);
   const queue = registrations
     .filter((r) => r.visitDate === today && r.status !== "已退号")
     .sort((a, b) => a.seq - b.seq);

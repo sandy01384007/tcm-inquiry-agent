@@ -199,7 +199,21 @@ export const PAY_METHODS: PayMethod[] = ["微信", "支付宝", "现金"];
 
 export type PayStatus = "待收" | "已收" | "作废";
 
-export type BillItemKind = "诊金" | "中药" | "西药" | "代煎" | "其他";
+export type FeeSchedule = {
+  consultFen: number;
+  herbFen: number;
+  decoctFen: number;
+  regFen: number;
+};
+
+export const DEFAULT_FEES: FeeSchedule = {
+  consultFen: 5000,
+  herbFen: 0,
+  decoctFen: 1000,
+  regFen: 1000,
+};
+
+export type BillItemKind = "挂号" | "诊金" | "中药" | "西药" | "代煎" | "其他";
 
 export type BillItem = {
   name: string;
@@ -353,6 +367,7 @@ export type WestStockItem = {
   warnAt: number;
   batch: string;
   expiry: string;
+  priceFen: number;
 };
 
 export type WestMove = {
@@ -377,6 +392,7 @@ export type WestRx = {
   id: string;
   createdAt: string;
   signedAt?: string;
+  printedAt?: string;
   chartId: string;
   registrationId: string;
   consultId?: string;
@@ -386,6 +402,8 @@ export type WestRx = {
   pregnancy: boolean;
   child: boolean;
   impression: string;
+  doctorSign: string;
+  pharmacistSign: string;
   lines: WestRxLine[];
   status: WestRxStatus;
 };
